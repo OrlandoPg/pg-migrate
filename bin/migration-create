@@ -1,0 +1,78 @@
+#!/usr/bin/env python2.7
+
+import argparse, sys, os.path, subprocess
+
+def path ( value ):
+    abspath = os.path.abspath(value)
+
+    if not os.path.exists(abspath): raise Exception(
+        'Specified path does not exist: %s' % value
+    )
+
+    return abspath
+
+
+def main ( schema_file, migration_path, migration_name, **kwargs ):
+    schema_file, migration_path = map(path, (schema_file, migration_path))
+
+    HASH = subprocess.check_output(
+        ('git log -1 --onleine %s' % schema_file).split()
+    ).split(maxsplit=1).pop(0)
+
+    if not HASH: raise Exception, 'Could not get hash for schema file: %s' % schema_file
+
+    migration_file = os.path.join(migration_path, migration_name or 'migration_%s' % HASH)
+
+    if os.path.exists(migration_file) and not kwargs['force']:
+        raise Exception, 'Existing migration file: %s (use --force to overwrite)' % migration_file
+
+    with file(migration_file) as f:
+        f.write("""
+CREATE OR REPLACE FUNCTION migration_%s ( varchar ) RETURNS VOID AS
+$BODY$
+DECLARE
+    _direction varchar := UPPER($1)
+BEGIN
+    CASE
+        WHEN _direction = 'UP' THEN
+            PERFORM SELECT 1; -- TODO: Write UP migration...
+
+        WHEN _direction = 'DOWN' THEN
+            PERFORM SELECT 1; -- TODO: Write DOWN migration...
+
+    END CASE;
+END;
+$BODY$
+LANGUAGE plpgsql;""" % HASH);
+
+
+p = argparse.ArgumentParser(description='Create a new migration from an existing schema file.')
+p.add_argument('-s', '--schema-file', type=str, default='etc/schema.pg.sql', dest='schema_file',
+    help='the schema file for which to create a migration')
+p.add_argument('-M', '--migration-path', type=str, default='etc/migrations/', dest='migration_path',
+    help='the path in which to create the migration')
+p.add_argument('-m', '--migration-name', type=str, default='migration_HASH.pg.sql', dest='migration_name',
+    help='the name of the migration to create (use the HASH of the schema file by default)')
+p.add_argument('-d', '--debug', action='store_true', dest='debug',
+    help='display the full stack trace of errors instead of just the message')
+p.add_argument('-f', '--force', action='store_true', dest='force',
+    help='force overwrite of existing migration file')
+
+if __name__ == '__main__':
+    args = None
+
+    try:
+        args = vars(p.parse_args())
+
+        main(**args)
+
+    except Exception, error:
+        if args and args['debug']: raise
+
+        if hasattr(error, 'returncode'):
+            sys.exit(error.returncode) ## The error message is already in stderr...
+
+        print error
+        sys.exit(1)
+
+## vim: filetype=python
