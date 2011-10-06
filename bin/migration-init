@@ -1,22 +1,23 @@
 #!/bin/bash
 
 psql $@ <<SCRIPT
-    CREATE SCHEMA "migrations";
 
-    CREATE TABLE "migrations"."history" (
-        "migration_id" serial PRIMARY KEY,
-        "next_migration_id" int DEFAULT NULL,
-        "hash" varchar(40) NOT NULL UNIQUE,
-        "applied" boolean DEFAULT true,
-        FOREIGN KEY "next_migration_id" REFERENCES
-            "migrations"."history" ( "migration_id" )
-    );
+CREATE SCHEMA "migrations";
 
-    CREATE INDEX ON "migrations"."history" ( "migration_id" DESC );
+CREATE TABLE "migrations"."history" (
+    "migration_id" serial PRIMARY KEY,
+    "next_migration_id" int DEFAULT NULL,
+    "hash" varchar(40) NOT NULL UNIQUE,
+    "applied" boolean DEFAULT true,
+    FOREIGN KEY "next_migration_id" REFERENCES
+        "migrations"."history" ( "migration_id" )
+);
 
-    CREATE INDEX ON "migrations"."history" ( "next_migration_id" DESC NULLS FIRST );
+CREATE INDEX ON "migrations"."history" ( "migration_id" DESC );
 
-    CREATE INDEX ON "migrations"."history" ( "applied" WHERE false );
+CREATE INDEX ON "migrations"."history" ( "next_migration_id" DESC NULLS FIRST );
+
+CREATE INDEX ON "migrations"."history" ( "applied" WHERE false );
 
 SCRIPT
 
