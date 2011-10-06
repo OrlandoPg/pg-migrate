@@ -2,6 +2,27 @@
 
 import argparse, os.path, subprocess
 
+
+MIGRATION_TEMPLATE = """
+    CREATE OR REPLACE FUNCTION migration_%s ( varchar ) RETURNS VOID AS
+    $BODY$
+    DECLARE
+        _direction varchar := UPPER($1)
+    BEGIN
+        CASE
+            WHEN _direction = 'UP' THEN
+                PERFORM SELECT 1; -- TODO: Write UP migration...
+
+            WHEN _direction = 'DOWN' THEN
+                PERFORM SELECT 1; -- TODO: Write DOWN migration...
+
+        END CASE;
+    END;
+    $BODY$
+    LANGUAGE plpgsql;
+"""
+
+
 def parser ( ):
     p = argparse.ArgumentParser(description='Create a new migration from an existing schema file.')
 
@@ -48,23 +69,7 @@ def main ( schema_file, migration_path, migration_name, **kwargs ):
         raise Exception, 'Existing migration file: %s (use --force to overwrite)' % migration_file
 
     with open(migration_file, 'w') as f:
-        f.write("""
-CREATE OR REPLACE FUNCTION migration_%s ( varchar ) RETURNS VOID AS
-$BODY$
-DECLARE
-    _direction varchar := UPPER($1)
-BEGIN
-    CASE
-        WHEN _direction = 'UP' THEN
-            PERFORM SELECT 1; -- TODO: Write UP migration...
-
-        WHEN _direction = 'DOWN' THEN
-            PERFORM SELECT 1; -- TODO: Write DOWN migration...
-
-    END CASE;
-END;
-$BODY$
-LANGUAGE plpgsql;""" % HASH);
+        f.write(MIGRATION_TEMPLATE % HASH);
 
 
 if __name__ == '__main__':
