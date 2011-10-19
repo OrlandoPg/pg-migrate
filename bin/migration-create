@@ -1,20 +1,20 @@
 #!/usr/bin/env python2.7
 
-import os.path, hashlib, migrations
+import os.path, migrations
 
 
 MIGRATION_TEMPLATE = """
     CREATE OR REPLACE FUNCTION %(migration_name)s ( varchar ) RETURNS VOID AS
     $BODY$
     DECLARE
-        _direction varchar := UPPER($1)
+        _direction varchar := UPPER($1);
     BEGIN
         CASE
             WHEN _direction = 'UP' THEN
-                PERFORM SELECT 1; -- TODO: Write UP migration...
+                PERFORM 1; -- TODO: Write UP migration...
 
             WHEN _direction = 'DOWN' THEN
-                PERFORM SELECT 1; -- TODO: Write DOWN migration...
+                PERFORM 1; -- TODO: Write DOWN migration...
 
         END CASE;
     END;
@@ -23,12 +23,19 @@ MIGRATION_TEMPLATE = """
 """
 
 
-class MigrationCreate(migrations.Command):
-    def get_HASH ( self, schema_file, long_hash=False ):
-        with open(schema_file) as f:
-            HASH = hashlib.sha256(f.read()).hexdigest()
+class MigrationCreate(migrations.MigrationCommand):
+    def init_args ( self ):
+        super(MigrationCreate, self).init_args(
+        ).add_argument('-s', '--schema-file', dest='schema_file', default='etc/schema.pg.sql',
+            help='the schema file to mark migrations from'
+        ).with_migration_path(
+        ).with_migration_name(
+        ).add_argument('--long-hash', action='store_true',
+            help='use the full 40-character HASH in MIGRATION_NAME if "--migration-name" is not provided'
+        ).add_argument('-f', '--force', action='store_true', dest='force',
+            help='force overwrite of existing migration file'
+        )
 
-            return HASH if long_hash else HASH[0:7]
 
 
     def main ( self, schema_file, migration_path, migration_name, long_hash=False, **kwargs ):
@@ -46,19 +53,6 @@ class MigrationCreate(migrations.Command):
 
 
 if __name__ == '__main__':
-    command = MigrationCreate(
-    ).add_argument('-s', '--schema-file', dest='schema_file', default='etc/schema.pg.sql',
-        help='the schema file to mark migrations from'
-    ).add_argument('-M', '--migration-path', dest='migration_path', default='etc/migrations/',
-        help='the path in which to store migrations'
-    ).add_argument('-m', '--migration-name', type=str, dest='migration_name',
-        help='the name of the migration to create (use the current hash of the schema file by default)'
-    ).add_argument('--long-hash', action='store_true',
-        help='use the full 40-character HASH in MIGRATION_NAME if "--migration-name" is not provided'
-    ).add_argument('-f', '--force', action='store_true', dest='force',
-        help='force overwrite of existing migration file'
-    )
-
-    command()
+    MigrationCreate()()
 
 ## vim: filetype=python
