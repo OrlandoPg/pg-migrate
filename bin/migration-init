@@ -15,25 +15,27 @@ CREATE TABLE "migrations"."history" (
         "migrations"."history" ( "migration_id" )
 );
 
-CREATE INDEX ON "migrations"."history" ( "migration_id" DESC );
+CREATE INDEX "history_migration_id_idx" ON "migrations"."history" ( "migration_id" DESC );
 
-CREATE INDEX ON "migrations"."history" ( "next_migration_id" DESC NULLS FIRST );
+CREATE INDEX "history_next_migration_id_idx" ON "migrations"."history" ( "next_migration_id" DESC NULLS FIRST );
 
-CREATE INDEX ON "migrations"."history" ( "applied" WHERE false );
+CREATE INDEX "history_applied_idx" ON "migrations"."history" ( "applied" );
 """,
-    'DOWN' : 'DROP SCHEMA "migrations";'
+    'DOWN' : 'DROP SCHEMA "migrations" CASCADE;'
 }
 
 class MigrationInit(migrations.Command):
     def main ( self, arguments=(), uninstall=False, **kwargs ):
-        command = ('psql',) + arguments + ('-c',) + (MIGRATION_SCHEMA['DOWN'] if uninstall else MIGRATION_SCHEMA['UP'],)
+        command = ('psql',) + arguments + ('-c',) + ('BEGIN TRANSACTION;\n%s\nCOMMIT TRANSACTION;' % (
+                MIGRATION_SCHEMA['DOWN'] if uninstall else MIGRATION_SCHEMA['UP']
+        ),)
 
         subprocess.call(command)
 
 
 if __name__ == '__main__':
     command = MigrationInit(
-    ).add_argument('--uninstall', action='store_true', help='uninstall the migrations schema instead of installing it'
+    ).add_argument('--uninstall', action='store_true', help='uninstall the migrations schema instead'
     ).add_argument('ARGUMENTS', nargs='*', help='additional arguments to pass to the "psql" command, i.e. DBUSER, DBNAME, etc.'
     )
 
