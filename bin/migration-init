@@ -1,15 +1,17 @@
-#!/bin/bash
+#!/usr/bin/env python2.7
 
-psql $@ <<SCRIPT
+import migrations, subprocess
 
+MIGRATION_SCHEMA = {
+    'UP' : """
 CREATE SCHEMA "migrations";
 
 CREATE TABLE "migrations"."history" (
     "migration_id" serial PRIMARY KEY,
     "next_migration_id" int DEFAULT NULL,
     "hash" varchar(40) NOT NULL UNIQUE,
-    "applied" boolean DEFAULT true,
-    FOREIGN KEY "next_migration_id" REFERENCES
+    "applied" boolean DEFAULT false,
+    FOREIGN KEY ( "next_migration_id" ) REFERENCES
         "migrations"."history" ( "migration_id" )
 );
 
@@ -18,7 +20,23 @@ CREATE INDEX ON "migrations"."history" ( "migration_id" DESC );
 CREATE INDEX ON "migrations"."history" ( "next_migration_id" DESC NULLS FIRST );
 
 CREATE INDEX ON "migrations"."history" ( "applied" WHERE false );
+""",
+    'DOWN' : 'DROP SCHEMA "migrations";'
+}
 
-SCRIPT
+class MigrationInit(migrations.Command):
+    def main ( self, arguments=(), uninstall=False, **kwargs ):
+        command = ('psql',) + arguments + ('-c',) + (MIGRATION_SCHEMA['DOWN'] if uninstall else MIGRATION_SCHEMA['UP'],)
 
-# vim: filetype=sh
+        subprocess.call(command)
+
+
+if __name__ == '__main__':
+    command = MigrationInit(
+    ).add_argument('--uninstall', action='store_true', help='uninstall the migrations schema instead of installing it'
+    ).add_argument('ARGUMENTS', nargs='*', help='additional arguments to pass to the "psql" command, i.e. DBUSER, DBNAME, etc.'
+    )
+
+    command()
+
+# vim: filetype=python
