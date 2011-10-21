@@ -27,11 +27,11 @@ class MigrationCreate(migrations.MigrationCommand):
     def init_args ( self ):
         super(MigrationCreate, self).init_args(
         ).add_argument('-s', '--schema-file', dest='schema_file', default='etc/schema.pg.sql',
-            help='the schema file to mark migrations from'
+            help='the schema file to mark migrations from, default: etc/schema.pg.sql'
         ).with_migration_path(
         ).with_migration_name(
         ).add_argument('--long-hash', action='store_true',
-            help='use the full 40-character HASH in MIGRATION_NAME if "--migration-name" is not provided'
+            help='use the full-length HASH in MIGRATION_NAME if "--migration-name" is not provided'
         ).add_argument('-f', '--force', action='store_true', dest='force',
             help='force overwrite of existing migration file'
         )

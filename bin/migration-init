@@ -9,7 +9,7 @@ CREATE SCHEMA "migrations";
 CREATE TABLE "migrations"."history" (
     "migration_id" serial PRIMARY KEY,
     "next_migration_id" int DEFAULT NULL,
-    "hash" varchar(40) NOT NULL UNIQUE,
+    "hash" varchar NOT NULL UNIQUE,
     "applied" boolean DEFAULT false,
     FOREIGN KEY ( "next_migration_id" ) REFERENCES
         "migrations"."history" ( "migration_id" )
