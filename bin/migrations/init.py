@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7
 
-import migrations, subprocess
+import base, subprocess
 
 MIGRATION_SCHEMA = {
     'UP' : """
@@ -24,7 +24,7 @@ CREATE INDEX "history_applied_idx" ON "migrations"."history" ( "applied" );
     'DOWN' : 'DROP SCHEMA "migrations" CASCADE;'
 }
 
-class MigrationInit(migrations.MigrationCommand):
+class MigrationInit(base.MigrationCommand):
     def main ( self, uninstall, DBNAME, DBUSER, **kwargs ):
         migration = MIGRATION_SCHEMA['DOWN'] if uninstall else MIGRATION_SCHEMA['UP']
 

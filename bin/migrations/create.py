@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7
 
-import os.path, migrations
+import os.path, base
 
 
 MIGRATION_TEMPLATE = """
@@ -23,7 +23,7 @@ MIGRATION_TEMPLATE = """
 """
 
 
-class MigrationCreate(migrations.MigrationCommand):
+class MigrationCreate(base.MigrationCommand):
     def init_args ( self ):
         super(MigrationCreate, self).init_args(
         ).add_argument('-s', '--schema-file', dest='schema_file', default='etc/schema.pg.sql',
@@ -39,7 +39,7 @@ class MigrationCreate(migrations.MigrationCommand):
 
 
     def main ( self, schema_file, migration_path, migration_name, long_hash=False, **kwargs ):
-        schema_file, migration_path = map(migrations.path, (schema_file, migration_path))
+        schema_file, migration_path = map(base.path, (schema_file, migration_path))
 
         migration_name = migration_name or ('migration_%s' % self.get_HASH(schema_file, long_hash))
 

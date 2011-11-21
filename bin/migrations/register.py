@@ -1,9 +1,9 @@
 #!/usr/bin/env python2.7
 
-import migrations, subprocess, os.path
+import base, subprocess, os.path
 
 
-class MigrationRegister(migrations.MigrationCommand):
+class MigrationRegister(base.MigrationCommand):
     def init_args ( self ):
         super(MigrationRegister, self).init_args(
         ).with_migration_path(
