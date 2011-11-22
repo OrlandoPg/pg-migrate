@@ -4,7 +4,7 @@ import os.path, base
 
 
 MIGRATION_TEMPLATE = """
-    CREATE OR REPLACE FUNCTION %(migration_name)s ( varchar ) RETURNS VOID AS
+    CREATE OR REPLACE FUNCTION "migrations"."%(migration_name)s" ( varchar ) RETURNS VOID AS
     $BODY$
     DECLARE
         _direction varchar := UPPER($1);
@@ -26,8 +26,7 @@ MIGRATION_TEMPLATE = """
 class MigrationCreate(base.MigrationCommand):
     def init_args ( self ):
         super(MigrationCreate, self).init_args(
-        ).add_argument('-s', '--schema-file', dest='schema_file', default='etc/schema.pg.sql',
-            help='the schema file to mark migrations from, default: etc/schema.pg.sql'
+        ).with_schema_file(
         ).with_migration_path(
         ).with_migration_name(
         ).add_argument('--long-hash', action='store_true',
@@ -50,6 +49,8 @@ class MigrationCreate(base.MigrationCommand):
 
         with open(migration_file, 'w') as f:
             f.write(MIGRATION_TEMPLATE % locals())
+
+        print migration_file
 
 
 if __name__ == '__main__':

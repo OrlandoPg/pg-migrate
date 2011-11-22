@@ -64,6 +64,12 @@ class MigrationCommand(Command):
             help='the path in which to store migrations, default: etc/migrations/')
 
 
+    def with_schema_file ( self ):
+        return self.add_argument('-s', '--schema-file', dest='schema_file', default='etc/schema.pg.sql',
+            help='the schema file to mark migrations from, default: etc/schema.pg.sql'
+        )
+
+
     def with_migration_name ( self, **kwargs ):
         defaults = dict(type=str, dest='migration_name',
             help='the name of the migration to create (use the current hash of the schema file by default)'
