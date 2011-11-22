@@ -14,16 +14,14 @@ class MigrationRegister(base.MigrationCommand):
 
 
     def main ( self, migration_path, MIGRATION_FILE, DBNAME, DBUSER, **kwargs ):
-        migration_path = migrations.path(migration_path)
+        migration_path = base.path(migration_path)
 
-        try: MIGRATION_FILE = migrations.path(MIGRATION_FILE)
+        try: MIGRATION_FILE = base.path(MIGRATION_FILE)
 
         except IOError:
-            MIGRATION_FILE = migrations.path(
+            MIGRATION_FILE = base.path(
                 migration_path, MIGRATION_FILE
             )
-
-        migration_name = os.path.basename(MIGRATION_FILE).split('.', 1).pop(0)
 
         subprocess.call(('psql', DBNAME, DBUSER, '-1', '-f', MIGRATION_FILE))
 
