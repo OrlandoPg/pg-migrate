@@ -1,2 +1,0 @@
-migration-init && migration-create --force && migration-register etc/migrations/*.pg.sql
-migration-init --uninstall
