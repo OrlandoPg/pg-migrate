@@ -1,4 +1,4 @@
-import argparse, os.path, sys, hashlib
+import argparse, os.path, sys, hashlib, importlib
 
 MIGRATION_EXTENSION = '.pg.sql'
 
@@ -93,3 +93,20 @@ class MigrationCommand(Command):
             return HASH if long_hash else HASH[0:7]
 
 
+class Migrations(Command):
+    def init_args ( self ):
+        super(Migrations, self).init_args(
+        ).add_argument(
+            'COMMAND', nargs=1 choices = (
+                'init', 'create', 'register', 'apply'
+            )
+        )
+
+
+    def main ( self, command ):
+        module = importlib.import_module(command)
+
+        return module.command()
+
+
+def command ( ): return Migrations()
