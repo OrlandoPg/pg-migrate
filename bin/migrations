@@ -1,0 +1,10 @@
+#!/usr/bin/env python2.7
+
+import migrations.Migrations
+
+if __name__ == '__main__':
+    command = migrations.command()
+
+    command()
+
+## vim: filetype=python
