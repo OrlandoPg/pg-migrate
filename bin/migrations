@@ -11,8 +11,12 @@ def parser ( parser=None ):
         title='Subcommands'
     )
 
-    migrations.init.parser(subparser.add_parser('init'))
-    #migrations.create.parser(subparser.add_parser('create'))
+    for command in ('init', 'create', 'register', 'apply'):
+        module = getattr(migrations, command)
+
+        migrations.base.with_debug(module.parser(
+            subparser.add_parser(command, help=module.__doc__)
+        )).set_defaults(command=module.command)
 
     return parser
 
