@@ -1,11 +1,11 @@
 #!/bin/bash -xv
 
-migrations-init
+migrations init
 
-MIGRATION=$(basename $(migrations-create --force))
+MIGRATION=$(basename $(migrations create --force))
 
-migrations-register $MIGRATION
+migrations register $MIGRATION
 
-migrations-apply --up-from $MIGRATION
+migrations apply --up-from $MIGRATION
 
-migrations-init --uninstall
+migrations init --uninstall
