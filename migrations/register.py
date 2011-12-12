@@ -1,32 +1,28 @@
-#!/usr/bin/env python2.7
+"""
+Register a migration function with the "migrations" schema.
+"""
 
 import base, subprocess, os.path
 
 
-class MigrationRegister(base.MigrationCommand):
-    def init_args ( self ):
-        super(MigrationRegister, self).init_args(
-        ).with_migration_path(
-        ).with_psql_arguments(
-        ).add_argument('MIGRATION_FILE',
-            help='the path to the migration file to register'
-        )
+@base.chain_parser
+def parser ( parser ):
+    base.with_migration_path(
+    base.with_psql_arguments(
+        parser
+    )).add_argument('MIGRATION_FILE',
+        help='the path to the migration file to register'
+    )
 
 
-    def main ( self, migration_path, MIGRATION_FILE, DBNAME, DBUSER, **kwargs ):
-        migration_path = base.path(migration_path)
+def command ( migration_path, MIGRATION_FILE, DBNAME, DBUSER, **kwargs ):
+    migration_path = base.path(migration_path)
 
-        try: MIGRATION_FILE = base.path(MIGRATION_FILE)
+    try:
+        MIGRATION_FILE = base.path(MIGRATION_FILE)
 
-        except IOError:
-            MIGRATION_FILE = base.path(
-                migration_path, MIGRATION_FILE
-            )
+    except IOError:
+        MIGRATION_FILE = base.path(migration_path, MIGRATION_FILE)
 
-        subprocess.call(('psql', DBNAME, DBUSER, '-1', '-f', MIGRATION_FILE))
+    subprocess.call(('psql', DBNAME, DBUSER, '-1', '-f', MIGRATION_FILE))
 
-
-if __name__ == '__main__':
-    MigrationRegister()()
-
-## vim: filetype=python

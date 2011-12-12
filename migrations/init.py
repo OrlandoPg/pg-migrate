@@ -1,6 +1,9 @@
-#!/usr/bin/env python2.7
+"""
+Initialize the "migrations" schema.
+"""
 
 import base, subprocess
+
 
 MIGRATION_SCHEMA = {
     'UP' : """
@@ -71,21 +74,21 @@ LANGUAGE plpgsql;
 }
 
 
+@base.chain_parser
 def parser ( parser ):
-    base.with_debug(parser)
-    base.with_psql_arguments(parser)
-    parser.add_argument('--uninstall', action='store_true',
+    base.with_psql_arguments(
+        parser
+    ).add_argument('--uninstall', action='store_true',
         help='uninstall the migrations schema instead'
     )
-    parser.set_defaults(command=command)
+
+    return parser
 
 
-def command ( self, uninstall, DBNAME, DBUSER, **kwargs ):
+def command ( uninstall, DBNAME, DBUSER, **kwargs ):
     migration = (
         MIGRATION_SCHEMA['DOWN'] if uninstall else MIGRATION_SCHEMA['UP']
     )
 
     subprocess.call(('psql', DBNAME, DBUSER, '-1', '-c', migration))
 
-
-# vim: filetype=python
