@@ -7,5 +7,6 @@ setup(name='PG Migrate', version='0.1',
     author='David Rogers', author_email='david@orlandopy.org',
     url='https://github.com/OrlandoPg/pg-migrate/',
     packages=['migrations'],
+    requires=['decorator'], provides=['pg-migrate'],
     scripts=['bin/migrations'],
 )
