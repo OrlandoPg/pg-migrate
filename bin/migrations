@@ -1,10 +1,43 @@
 #!/usr/bin/env python2.7
 
-import migrations.Migrations
+import migrations
+import argparse
+
+def parser ( parser=None ):
+    parser = parser or argparse.ArgumentParser()
+    migrations.with_debug(parser)
+
+    subparser = parser.add_subparsers(
+        title='Subcommands'
+    )
+
+    migrations.init.parser(subparser.add_parser('init'))
+    #migrations.create.parser(subparser.add_parser('create'))
+
+    return parser
+
+
+def command ( parser ):
+    args = None
+
+    try:
+        args = parser.parse_args(args)
+
+        ## TODO: Add config file support...
+        #if args.config_file: pass ## TODO: Load / save args to config_file...?
+
+        args.command(**vars(args))
+
+    except Exception, error:
+        if args and args.debug: raise
+
+        if hasattr(error, 'returncode'):
+            parser.exit(error.returncode)
+
+        parser.exit(1, str(error))
+
 
 if __name__ == '__main__':
-    command = migrations.command()
-
-    command()
+    command(parser())
 
 ## vim: filetype=python

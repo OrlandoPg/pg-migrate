@@ -70,19 +70,22 @@ LANGUAGE plpgsql;
     'DOWN' : 'DROP SCHEMA "migrations" CASCADE;'
 }
 
-class MigrationInit(base.MigrationCommand):
-    def main ( self, uninstall, DBNAME, DBUSER, **kwargs ):
-        migration = MIGRATION_SCHEMA['DOWN'] if uninstall else MIGRATION_SCHEMA['UP']
 
-        subprocess.call(('psql', DBNAME, DBUSER, '-1', '-c', migration))
+def parser ( parser ):
+    base.with_debug(parser)
+    base.with_psql_arguments(parser)
+    parser.add_argument('--uninstall', action='store_true',
+        help='uninstall the migrations schema instead'
+    )
+    parser.set_defaults(command=command)
 
 
-if __name__ == '__main__':
-    command = MigrationInit(
-    ).add_argument('--uninstall', action='store_true', help='uninstall the migrations schema instead'
-    ).with_psql_arguments(
+def command ( self, uninstall, DBNAME, DBUSER, **kwargs ):
+    migration = (
+        MIGRATION_SCHEMA['DOWN'] if uninstall else MIGRATION_SCHEMA['UP']
     )
 
-    command()
+    subprocess.call(('psql', DBNAME, DBUSER, '-1', '-c', migration))
+
 
 # vim: filetype=python
