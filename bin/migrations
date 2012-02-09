@@ -36,7 +36,7 @@ def command ( parser ):
         if args and args.debug: raise
 
         if hasattr(error, 'returncode'):
-            parser.exit(error.returncode)
+            parser.exit(error.returncode, '\nFAIL\n\n')
 
         parser.exit(1, str(error))
 
