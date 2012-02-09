@@ -48,7 +48,7 @@ def command ( schema_file, migration_path, migration_name, long_hash=False, **kw
 
     migration_name = migration_name or ('migration_%s' % base.hash(schema_file, long_hash))
 
-    migration_file = base.path(
+    migration_file = os.path.join(
         migration_path, migration_name + base.MIGRATION_EXTENSION
     )
 
