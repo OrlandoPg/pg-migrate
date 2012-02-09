@@ -27,20 +27,37 @@ def parser ( parser ):
         help='apply the migration in the "DOWN" direction'
     )
 
+    parser.add_argument('--dump', action='store_const',
+        const=True, dest='dump_schema', default=False,
+        help='Also dump the contents of the DB schema into SCHEMA_FILE if successful'
+    )
+
 
 def _up_from ( DBNAME, DBUSER, hash ):
-    subprocess.call(('psql', DBNAME, DBUSER, '-1c',
-        '''SELECT 1 FROM "migrations"."migrate" ('%(hash)s', 'UP');''' % locals()
+    subprocess.check_call(('psql', DBNAME, DBUSER, '-1xtc',
+        '''SELECT 'up from %(hash)s' AS "direction" FROM "migrations"."migrate" ('%(hash)s', 'UP');''' % locals()
     ))
 
 
 def _down_to ( DBNAME, DBUSER, hash ):
-    subprocess.call(('psql', DBNAME, DBUSER, '-1c',
-        '''SELECT 1 FROM "migrations"."migrate" ('%(hash)', 'DOWN');''' % locals()
+    subprocess.check_call(('psql', DBNAME, DBUSER, '-1xtc',
+        '''SELECT 'down to %(hash)s' AS "direction" FROM "migrations"."migrate" ('%(hash)s', 'DOWN');''' % locals()
     ))
 
 
-def command ( schema_file, migration_path, DBNAME, DBUSER, MIGRATION_NAME, direction, **kwargs ):
+def _dump_schema ( schema_file, DBNAME, DBUSER ):
+    with open(schema_file, 'w') as f:
+        output = subprocess.check_output(( 
+            ('pg_dump', '-xOsn', 'public', DBNAME) + ('--username', DBUSER) if DBUSER else ()
+        )).splitlines(True)
+
+        f.writelines(( line for line in output if not (
+            line.startswith(('--', 'SET')) or ('pg_catalog.setval' in line)
+        ) ))
+
+
+
+def command ( schema_file, migration_path, DBNAME, DBUSER, MIGRATION_NAME, direction, dump_schema, **kwargs ):
     schema_file, migration_path = map(base.path, (schema_file, migration_path))
 
     for search in (migration_path, 'migration_', '.pg.sql'):
@@ -49,4 +66,6 @@ def command ( schema_file, migration_path, DBNAME, DBUSER, MIGRATION_NAME, direc
     args = (DBNAME, DBUSER, MIGRATION_NAME)
 
     _up_from(*args) if direction else _down_to(*args)
+
+    if dump_schema: _dump_schema(schema_file, DBNAME, DBUSER)
 
